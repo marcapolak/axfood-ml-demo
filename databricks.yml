@@ -1,0 +1,21 @@
+# Declarative Automation Bundle: the whole Axfood demo as code (replaces image + SageMaker job + Airflow DAG).
+bundle:
+  name: axfood_demo
+
+variables:
+  catalog:
+    description: Unity Catalog catalog (CREATE CATALOG is blocked on this shared metastore, so we reuse an existing one)
+    default: agentbricks_demo_catalog
+  schema:
+    description: Schema that holds all demo tables, features and the model
+    default: axfood_demo
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      host: https://fevm-agentbricks-demo.cloud.databricks.com

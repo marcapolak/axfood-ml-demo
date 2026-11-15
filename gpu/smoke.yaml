@@ -1,0 +1,5 @@
+experiment_name: axfood-air-smoke
+compute:
+  num_accelerators: 1
+  accelerator_type: GPU_1xA10
+command: nvidia-smi --query-gpu=name,memory.total --format=csv,noheader

@@ -1,0 +1,21 @@
+# Submit from your laptop:  databricks air run --file gpu/workload.yaml --watch --profile <profile>   (CLI 1.24.0 or newer)
+experiment_name: axfood-gpu-forecaster
+compute:
+  accelerator_type: GPU_1xA10      # A10 24 GB is plenty here; switch to GPU_1xH100 to show the speed-up
+  num_accelerators: 1
+environment:
+  version: 6
+  dependencies:
+    - torch
+    - databricks-uc-dataset==0.0.1b1     # only used when DATA_SOURCE=ucdataset
+code_source:
+  root_path: .
+  include_paths:
+    - train_nn.py
+env_variables:
+  CATALOG: agentbricks_demo_catalog
+  SCHEMA: axfood_demo
+  EPOCHS: '12'
+  DATA_SOURCE: volume                  # set to ucdataset when the storage role allows s3:ListBucket (see README)
+# UCDataset needs RANK and WORLD_SIZE both set, so launch with torchrun even on a single GPU.
+command: torchrun --nproc_per_node=1 $CODE_SOURCE_PATH/train_nn.py

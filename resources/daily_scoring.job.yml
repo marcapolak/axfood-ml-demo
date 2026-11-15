@@ -1,0 +1,30 @@
+resources:
+  jobs:
+    daily_scoring:
+      name: axfood-daily-batch-scoring
+      description: Scheduled batch scoring with the @champion model. Retries and failure alerts are job settings, not code. Shipped PAUSED so it costs nothing until you unpause it.
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: Europe/Stockholm
+        pause_status: PAUSED
+      max_concurrent_runs: 1
+      environments:
+        - environment_key: serverless_env
+          spec:
+            client: "4"
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+      tasks:
+        - task_key: batch_score
+          environment_key: serverless_env
+          max_retries: 2
+          min_retry_interval_millis: 60000
+          notebook_task:
+            notebook_path: ../notebooks/04_batch_score.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}

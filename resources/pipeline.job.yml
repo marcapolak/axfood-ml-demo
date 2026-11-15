@@ -1,0 +1,38 @@
+resources:
+  jobs:
+    forecast_pipeline:
+      name: axfood-demand-forecast-pipeline
+      description: End to end, run once to set up data, features, model and forecasts. Four tasks, no Docker image, no DAG file.
+      environments:
+        - environment_key: serverless_env
+          spec:
+            client: "4"
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      tasks:
+        - task_key: generate_data
+          environment_key: serverless_env
+          notebook_task:
+            notebook_path: ../notebooks/01_generate_data.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}
+        - task_key: build_features
+          depends_on: [{task_key: generate_data}]
+          environment_key: serverless_env
+          notebook_task:
+            notebook_path: ../notebooks/02_build_features.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}
+        - task_key: train_register
+          depends_on: [{task_key: build_features}]
+          environment_key: serverless_env
+          notebook_task:
+            notebook_path: ../notebooks/03_train_register.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}
+        - task_key: batch_score
+          depends_on: [{task_key: train_register}]
+          environment_key: serverless_env
+          notebook_task:
+            notebook_path: ../notebooks/04_batch_score.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}

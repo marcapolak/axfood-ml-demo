@@ -1,0 +1,24 @@
+resources:
+  jobs:
+    review_classification:
+      name: axfood-review-classification
+      description: OPTIONAL (Beta). A native Lakeflow AI Function task that classifies new customer reviews incrementally, no notebook or SQL code. Needs the "Lakeflow AI Function Task" preview enabled by a workspace admin.
+      tasks:
+        - task_key: classify_reviews
+          ai_function_task:
+            delta_table:
+              table_name: ${var.catalog}.${var.schema}.customer_reviews
+              input_column: review_text
+              merge_key_columns: [review_id]
+            output:
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              table: review_topics_task
+            ai_classify:
+              version: "2.1"
+              inline_labels:
+                labels:
+                  - {name: out_of_stock, description: "The product was not available on the shelf"}
+                  - {name: quality, description: "Spoiled, stale or otherwise poor product quality"}
+                  - {name: price, description: "Complaints about price or wrong price"}
+                  - {name: delivery, description: "Late, wrong or damaged home delivery"}
