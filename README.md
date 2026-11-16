@@ -19,7 +19,7 @@ Everything else in this repo (bundle, scripts, SQL, GPU yaml) is the rebuildable
 | PRECOMPUTED | the slow part was run before (online store, endpoint warm-up, GPU run, full review classification); the cell reads the result |
 | SHOW ONLY | code or YAML to read, not to run |
 
-## Presenter script: 15 minutes, one notebook
+## Presenter script: about 15 to 16 minutes (cut section 10 and shorten the GPU step if short on time), one notebook
 
 Before you start: run the notebook once end to end (about 6 minutes), hit the endpoint once so it is warm (it scales to zero),
 open the Genie space in a second tab. Attach the notebook to **Serverless**.
@@ -36,9 +36,10 @@ open the Genie space in a second tab. Attach the notebook to **Serverless**.
 | 8:30 | 6. Batch score | What a scheduled Job runs every morning. Then the comparison table: zero training vs your own model. | LIVE + PRECOMPUTED |
 | 10:00 | 7. Serving | Serverless endpoint, scale to zero, you send only keys. Falls back to notebook scoring if the endpoint is not ready. | LIVE (fallback built in) |
 | 11:00 | 8. GPU | "A10 with no cluster to request." Show the MLflow table of the GPU run. Mention H100, 8xH100 on demand, 8xB300 waitlist. Show the UCDataset code. | PRECOMPUTED + SHOW ONLY |
-| 12:30 | 9. The Job | The bundle YAML replaces the Airflow DAG. Open the Jobs page for the deployed job. | SHOW ONLY |
-| 13:30 | Genie | In the Genie tab: "Which stores are forecast to be short next week?" | LIVE |
-| 14:30 | Close | "One platform, one governance model, for data, features, models, GPUs and agents. Next step: a 2 hour hands-on with one of your own use cases." | |
+| 12:00 | 9. Schedule it in one click | Open `04_batch_score`, click **Schedule**, pick Daily, serverless, Create, click through to the Job page (runs, retries, alerts). "That is the whole DAG." Or ask Genie Code: "Schedule this notebook to run daily at 6am." Fallback: open the pre-built paused job `axfood-daily-batch-scoring`. Delete the job you created after the session. | LIVE (in the UI) |
+| 13:30 | 10. Same as code | Optional, 30 s: the bundle YAML, for when they want Git and CI/CD. Skip if short on time. | SHOW ONLY |
+| 14:00 | Genie | In the Genie tab: "Which stores are forecast to be short next week?" | LIVE |
+| 15:00 | Close | "One platform, one governance model, for data, features, models, GPUs and agents. Next step: a 2 hour hands-on with one of your own use cases." | |
 
 ## Notebook-only fallback
 

@@ -8,7 +8,7 @@
 # MAGIC * **PRECOMPUTED** the slow part was run before, this cell reads the result (online store, endpoint warm-up, GPU)
 # MAGIC * **SHOW ONLY** code to read, not to run
 # MAGIC
-# MAGIC Sections: 1 data, 2 AI Functions, 3 Feature Store, 4 train and compare, 5 register, 6 batch score, 7 serving, 8 GPU, 9 the Job that replaces the DAG.
+# MAGIC Sections: 1 data, 2 AI Functions, 3 Feature Store, 4 train and compare, 5 register, 6 batch score, 7 serving, 8 GPU, 9 schedule it in one click (UI), 10 the same Job as code.
 
 # COMMAND ----------
 
@@ -294,8 +294,22 @@ else:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 9. The Job that replaces the Airflow DAG &nbsp; `SHOW ONLY`
-# MAGIC The whole pipeline is a Declarative Automation Bundle: files in Git, deployed with `databricks bundle deploy`. Retries and failure alerts are settings, not code.
+# MAGIC ## 9. Schedule it in one click: no DAG file &nbsp; `LIVE` (about 1 minute, in the UI)
+# MAGIC This is the whole step that replaces an Airflow DAG for a simple project. Do it on the batch scoring notebook, the thing you actually want to run every morning:
+# MAGIC
+# MAGIC 1. Open **`04_batch_score`** (same folder as this notebook).
+# MAGIC 2. Click **Schedule** in the top right. The *New schedule* dialog opens.
+# MAGIC 3. Pick **Daily**, a time and a time zone, leave compute on **serverless**. Optionally add an email for failures under *More options*.
+# MAGIC 4. Click **Create**. A Lakeflow Job now exists. Click through to the job page: runs, retries, alerts, history, all there.
+# MAGIC
+# MAGIC Or skip the clicks and tell **Genie Code**: *"Schedule this notebook to run daily at 6am."*
+# MAGIC
+# MAGIC `PRESENTER`: after the session, delete the job you just created from the Jobs page, or it keeps scoring every morning. Fallback if the dialog is slow: open the pre-built paused job **axfood-daily-batch-scoring** from the Jobs page and show the same screens.
+# MAGIC
+# MAGIC Docs: https://docs.databricks.com/aws/en/notebooks/schedule-notebook-jobs
+# MAGIC
+# MAGIC ## 10. The same thing as code, when you are ready for Git and CI/CD &nbsp; `SHOW ONLY`
+# MAGIC The same Job can be a Declarative Automation Bundle: files in Git, deployed with `databricks bundle deploy`. Retries and failure alerts are settings, not code.
 # MAGIC The daily scoring job ships **paused** so it costs nothing until unpaused.
 # MAGIC
 # MAGIC ```yaml
@@ -324,7 +338,7 @@ else:
 # MAGIC ```
 # MAGIC In Airflow this is a DAG file, an operator, a Docker image and a deployment. Here it is the notebook you just ran, plus 15 lines of YAML.
 # MAGIC
-# MAGIC **What we showed:** data, AI Functions, features, three tracked runs, a governed model with an alias, batch scoring, serving, a GPU run, and the Job.
+# MAGIC **What we showed:** data, AI Functions, features, three tracked runs, a governed model with an alias, batch scoring, serving, a GPU run, and a scheduled Job created in one click.
 # MAGIC One platform, one governance model.
 
 # COMMAND ----------
