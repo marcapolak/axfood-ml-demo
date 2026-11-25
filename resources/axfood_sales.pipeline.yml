@@ -1,0 +1,14 @@
+resources:
+  pipelines:
+    axfood_sales:
+      name: axfood-sales-pipeline
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      channel: CURRENT
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+      libraries:
+        - file:
+            path: ../pipelines/axfood_sales.sql

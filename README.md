@@ -27,7 +27,8 @@ open the Genie space in a second tab. Attach the notebook to **Serverless**.
 | Min | Section | Say | Marker |
 |-----|---------|-----|--------|
 | 0:00 | Intro | "Same work you do today. No image, no job definition, no DAG file." | |
-| 0:45 | 1. Data | Data is in Unity Catalog, governed like any table. | LIVE |
+| 0:45 | 0. Architecture + the deployed Job | Show the one box diagram, then run the cell that reads the deployed `axfood-daily-batch-scoring` job: one task, one notebook, serverless, retries and alerts as settings. "Docker images: 0, DAG files: 0." Click the job page link. Adds about 2 min (show the diagram, then run the cell that lists the lifecycle and daily jobs), so cut section 10 or shorten the GPU step. | SHOW ONLY + LIVE |
+| 2:15 | 1. Data | Data is in Unity Catalog, governed like any table. | LIVE |
 | 1:30 | 2a. `ai_forecast` | "Before we train anything, one SQL statement gives a forecast with zero training." Runs on the SQL warehouse, about 10 s. | LIVE |
 | 2:30 | 2b. `ai_classify`, `ai_extract` | Reviews classified and extracted with SQL. The full table is precomputed. About 2 min total for section 2. | LIVE + PRECOMPUTED |
 | 3:30 | 3. Feature Store | Features are governed tables, `as_of_ts` gives point in time correctness, same definition for training, batch and serving. | LIVE |

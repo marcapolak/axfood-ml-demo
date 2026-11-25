@@ -1,0 +1,47 @@
+resources:
+  jobs:
+    ml_lifecycle:
+      name: axfood-ml-lifecycle
+      description: The whole ML lifecycle as one Job. Data pipeline, features, train and register, batch score, serve. No Docker image, no DAG file, no operators.
+      environments:
+        - environment_key: serverless_env
+          spec:
+            client: "4"
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+      tasks:
+        - task_key: prepare_data
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.axfood_sales.id}
+        - task_key: build_features
+          depends_on: [{task_key: prepare_data}]
+          environment_key: serverless_env
+          notebook_task:
+            notebook_path: ../notebooks/02_build_features.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}
+        - task_key: train_register
+          depends_on: [{task_key: build_features}]
+          environment_key: serverless_env
+          notebook_task:
+            notebook_path: ../notebooks/03_train_register.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}
+        - task_key: batch_score
+          depends_on: [{task_key: train_register}]
+          environment_key: serverless_env
+          max_retries: 1
+          notebook_task:
+            notebook_path: ../notebooks/04_batch_score.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}
+        - task_key: serve_model
+          depends_on: [{task_key: train_register}]
+          environment_key: serverless_env
+          timeout_seconds: 3600
+          notebook_task:
+            notebook_path: ../notebooks/06_serve_endpoint.py
+            base_parameters: {catalog: "{{job.parameters.catalog}}", schema: "{{job.parameters.schema}}"}

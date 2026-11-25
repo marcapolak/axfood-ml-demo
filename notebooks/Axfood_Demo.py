@@ -8,7 +8,7 @@
 # MAGIC * **PRECOMPUTED** the slow part was run before, this cell reads the result (online store, endpoint warm-up, GPU)
 # MAGIC * **SHOW ONLY** code to read, not to run
 # MAGIC
-# MAGIC Sections: 1 data, 2 AI Functions, 3 Feature Store, 4 train and compare, 5 register, 6 batch score, 7 serving, 8 GPU, 9 schedule it in one click (UI), 10 the same Job as code.
+# MAGIC Sections: 0 architecture, the deployed pipeline and Job, 1 data, 2 AI Functions, 3 Feature Store, 4 train and compare, 5 register, 6 batch score, 7 serving, 8 GPU, 9 schedule it in one click (UI), 10 the same Job as code.
 
 # COMMAND ----------
 
@@ -28,6 +28,80 @@ import mlflow, pandas as pd, numpy as np
 from pyspark.sql import functions as F
 mlflow.set_registry_uri("databricks-uc")
 print("catalog.schema:", f"{CATALOG}.{SCHEMA}", "| user:", ME)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 0. Architecture at a glance &nbsp; `SHOW ONLY` then `LIVE` (about 2 minutes)
+# MAGIC Everything below runs on one platform. There is no image to build and no DAG file to write: the notebook is the unit of work, a Job runs it, a pipeline prepares the data.
+# MAGIC
+# MAGIC ```
+# MAGIC  Unity Catalog: one governance model (permissions, lineage, audit) across every box below
+# MAGIC  +--------------------------------------------------------------------------------------------+
+# MAGIC  |                                                                                            |
+# MAGIC  |  PIPELINE            FEATURES          TRAIN + TRACK       REGISTER         RUN            |
+# MAGIC  |  Declarative         Feature tables -> serverless       -> UC model      -> Lakeflow Job   |
+# MAGIC  |  Pipeline            (point in time,   notebook (CPU)       @champion        (batch, daily)|
+# MAGIC  |  bronze > silver     online store)     or AI Runtime GPU    alias         -> Serving       |
+# MAGIC  |  > gold              MLflow runs                                              (real time)  |
+# MAGIC  |       |                                                                          |         |
+# MAGIC  |       +-- ai_forecast / ai_classify / ai_extract: zero training, plain SQL         v         |
+# MAGIC  |                                                           gold tables -> Genie, BI, apps   |
+# MAGIC  +--------------------------------------------------------------------------------------------+
+# MAGIC  Git + Declarative Automation Bundles deploy the same thing to dev, staging and prod
+# MAGIC ```
+# MAGIC
+# MAGIC **The point:** the pipeline and "Run" boxes are where Docker + SageMaker + Airflow sit today. Here they are one deployed pipeline and one deployed Job. The lifecycle Job chains data, features, training, scoring and serving. Let's look at the real ones.
+
+# COMMAND ----------
+
+# `SHOW ONLY`: the architecture picture (PNG lives in the UC volume, source docs/architecture.mmd)
+import base64
+_img = base64.b64encode(open(f"/Volumes/{CATALOG}/{SCHEMA}/gpu_data/architecture.png", "rb").read()).decode()
+displayHTML(f'<img src="data:image/png;base64,{_img}" style="width:100%">')
+
+# COMMAND ----------
+
+# `LIVE`: read what is already deployed and show how small it is. This is the whole "DAG".
+from databricks.sdk import WorkspaceClient
+w = WorkspaceClient()
+host = w.config.host.rstrip("/")
+links = []
+
+pl = next((p for p in w.pipelines.list_pipelines() if "axfood-sales-pipeline" in (p.name or "")), None)
+if pl:
+    spec = w.pipelines.get(pl.pipeline_id).spec
+    print(f"Pipeline:  {pl.name}  (serverless={spec.serverless}, target {spec.catalog}.{spec.schema})")
+    for lib in spec.libraries or []:
+        print(f"  source:  {lib.file.path if lib.file else lib.notebook.path if lib.notebook else lib}")
+    print("  tables:  pl_bronze_sales -> pl_silver_sales (quality rules) -> pl_gold_store_week")
+    links.append((f"{host}/pipelines/{pl.pipeline_id}", "Pipeline: graph, data quality, lineage"))
+else:
+    print("Pipeline 'axfood-sales-pipeline' not found here. Deploy with `databricks bundle deploy`.")
+
+for jname, label in [("axfood-ml-lifecycle", "the whole lifecycle"), ("axfood-daily-batch-scoring", "the daily run")]:
+    print()
+    job = next((j for j in w.jobs.list(expand_tasks=True) if jname in (j.settings.name or "")), None)
+    if not job:
+        print(f"Job '{jname}' not found here. Deploy with `databricks bundle deploy`.")
+        continue
+    s = job.settings
+    print(f"Job:       {s.name}  ({label})")
+    if s.schedule:
+        print(f"  schedule: {s.schedule.quartz_cron_expression} ({s.schedule.timezone_id}), {s.schedule.pause_status.value if s.schedule.pause_status else 'ACTIVE'}")
+    else:
+        print("  schedule: none (run on demand, from a trigger, or add a schedule in one click)")
+    print("  compute:  serverless, no cluster definition")
+    print(f"  alerts:   on failure -> {', '.join(s.email_notifications.on_failure) if s.email_notifications and s.email_notifications.on_failure else 'none'}")
+    for t in s.tasks:
+        what = f"notebook {t.notebook_task.notebook_path.split('/')[-1]}" if t.notebook_task else "pipeline" if t.pipeline_task else "task"
+        after = ", ".join(d.task_key for d in (t.depends_on or [])) or "start"
+        print(f"  task:     {t.task_key:<15} {what:<28} after: {after}")
+    links.append((f"{host}/jobs/{job.job_id}", f"Job {s.name.split('] ')[-1]}: graph, runs, retries, alerts"))
+
+print("\nDocker images: 0   DAG files: 0   Operators: 0")
+if links:
+    displayHTML("<br>".join(f'<a href="{u}" target="_blank">{t}</a>' for u, t in links))
 
 # COMMAND ----------
 

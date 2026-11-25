@@ -1,0 +1,26 @@
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'DM Sans, Arial','primaryColor':'#E8F1F2','primaryBorderColor':'#1B3139','primaryTextColor':'#1B3139','lineColor':'#1B3139','clusterBkg':'#F9F7F4','clusterBorder':'#1B3139'}}}%%
+flowchart LR
+  subgraph UC["Unity Catalog: one governance model (permissions, lineage, audit)"]
+    direction LR
+    subgraph JOB["Lakeflow Job: axfood-ml-lifecycle (serverless, retries and alerts are settings)"]
+      direction LR
+      P["1. Data pipeline<br/>bronze > silver > gold<br/>quality rules"] --> F["2. Features<br/>point in time<br/>offline + online"]
+      F --> T["3. Train + track<br/>MLflow runs<br/>CPU or serverless GPU"]
+      T --> R["4. Register<br/>UC model<br/>@champion alias"]
+      R --> B["5a. Batch score<br/>gold forecast table"]
+      R --> S["5b. Serve<br/>endpoint, scale to zero<br/>automatic feature lookup"]
+    end
+    AI["AI Functions<br/>ai_forecast, ai_classify<br/>zero training, SQL"]
+    B --> G["Genie, BI, apps"]
+    S --> A["Apps, agents,<br/>real time callers"]
+    P -.-> AI
+  end
+  GIT["Git + Declarative Automation Bundles<br/>dev, staging, prod"] ==> JOB
+  X["Replaces: Docker image + SageMaker job + Airflow DAG"]:::note
+  classDef note fill:#FFF,stroke:#FF5F46,color:#FF5F46,stroke-dasharray:4 3;
+  style P fill:#1B3139,color:#fff
+  style R fill:#FF5F46,color:#fff,stroke:#FF5F46
+  style S fill:#1B3139,color:#fff
+  style B fill:#1B3139,color:#fff
+  style F fill:#1B3139,color:#fff
+  style T fill:#1B3139,color:#fff
