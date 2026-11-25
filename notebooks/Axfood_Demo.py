@@ -230,7 +230,7 @@ def build(p):
     return Pipeline([("prep", prep), ("model", lgb.LGBMRegressor(verbose=-1, random_state=7, **p))])
 wape = lambda y, p: float(np.abs(y - p).sum() / np.abs(y).sum())
 CONFIGS = {"baseline_small": dict(n_estimators=150, learning_rate=0.10, num_leaves=15),
-           "balanced": dict(n_estimators=400, learning_rate=0.05, num_leaves=31),
+           "balanced": dict(n_estimators=500, learning_rate=0.05, num_leaves=47),
            "deeper": dict(n_estimators=700, learning_rate=0.03, num_leaves=63, subsample=0.8, subsample_freq=1, colsample_bytree=0.8)}
 naive = wape(y_test.values, X_test["sales_lag_1w"].fillna(y_train.mean()).values)
 mlflow.sklearn.autolog(log_models=False, silent=True)
