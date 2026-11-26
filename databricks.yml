@@ -19,3 +19,10 @@ targets:
     mode: development
     workspace:
       host: https://fevm-agentbricks-demo.cloud.databricks.com
+  # Git demo: deploy from the Git folder in e2-demo-field-eng (databricks bundle deploy -t e2)
+  e2:
+    mode: development
+    workspace:
+      host: https://e2-demo-field-eng.cloud.databricks.com
+    variables:
+      catalog: main
