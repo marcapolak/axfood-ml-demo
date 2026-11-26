@@ -17,7 +17,7 @@ step "4/9 train, track, register";     scripts/run_notebook.sh notebooks/03_trai
 step "5/9 batch scoring";              scripts/run_notebook.sh notebooks/04_batch_score.py
 step "6/9 baseline vs custom model";   scripts/run_notebook.sh notebooks/05_compare_baseline.py
 step "7/9 bundle: pipeline job + scheduled scoring job"
-databricks bundle deploy --profile "$PROFILE"
+databricks bundle deploy -t dev --profile "$PROFILE"
 step "8/9 serving endpoint (online store takes about 10 minutes)"; scripts/run_notebook.sh notebooks/06_serve_endpoint.py
 step "9/9 Genie space";                python3 genie/build_space.py --profile "$PROFILE"
 echo; echo "Optional: GPU step"

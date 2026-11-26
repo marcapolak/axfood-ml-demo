@@ -14,13 +14,14 @@ include:
   - resources/*.yml
 
 targets:
+  # fevm-agentbricks-demo: used by scripts/setup.sh (databricks bundle deploy -t dev)
   dev:
-    default: true
     mode: development
     workspace:
       host: https://fevm-agentbricks-demo.cloud.databricks.com
-  # Git demo: deploy from the Git folder in e2-demo-field-eng (databricks bundle deploy -t e2)
+  # Git demo: the default target, e2-demo-field-eng (databricks bundle deploy)
   e2:
+    default: true
     mode: development
     workspace:
       host: https://e2-demo-field-eng.cloud.databricks.com
